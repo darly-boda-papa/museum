@@ -2,9 +2,6 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
-  "env": {
-    "VITE_API_KEY": "@vite_api_key"
-  },
   "routes": [
     {
       "src": "/api/(.*)",
