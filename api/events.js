@@ -1,4 +1,5 @@
-const API_URL = "https://api.kcisa.kr/openapi/service/CNV/API_CNV_042/request";
+const DEFAULT_API_BASE_URL = "https://api.kcisa.kr";
+const API_PATH = "/openapi/service/CNV/API_CNV_042/request";
 
 function normalizeText(value) {
   if (value == null) return "";
@@ -71,6 +72,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Missing VITE_API_KEY environment variable" });
   }
 
+  const apiBaseUrl = (process.env.API_BASE_URL || DEFAULT_API_BASE_URL).trim().replace(/\/+$/, "");
+
   const params = new URLSearchParams({
     serviceKey: apiKey,
     numOfRows: "50",
@@ -79,7 +82,7 @@ export default async function handler(req, res) {
     format: "json",
   });
 
-  const requestUrl = `${API_URL}?${params.toString()}`;
+  const requestUrl = `${apiBaseUrl}${API_PATH}?${params.toString()}`;
 
   try {
     const upstream = await fetch(requestUrl, {
@@ -115,9 +118,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ total: safeEvents.length, events: safeEvents });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCause = error && typeof error === "object" && "cause" in error ? String(error.cause) : "";
     return res.status(500).json({
       error: "Failed to fetch museum events",
-      details: error instanceof Error ? error.message : String(error),
+      details: errorMessage,
+      requestUrl: `${apiBaseUrl}${API_PATH}`,
+      cause: errorCause || undefined,
     });
   }
 }

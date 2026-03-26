@@ -6,7 +6,8 @@
 
 현재는 `/api/events` 서버리스 함수가 외부 공공 API를 대신 호출합니다.
 - 프론트엔드에는 API 키가 노출되지 않습니다.
-- Vercel 배포 시 환경 변수(`VITE_API_KEY`)만 설정하면 동작합니다.
+- Vercel 배포 시 환경 변수(`VITE_API_KEY`)를 설정하면 동작합니다.
+- 공공 API 도메인 변경 시 `API_BASE_URL`만 바꾸면 코드 수정 없이 대응할 수 있습니다.
 
 ## 기능
 
@@ -40,6 +41,8 @@ vercel dev
    - Environment Variables 섹션에 추가:
      - NAME: `VITE_API_KEY`
      - VALUE: 발급받은 공공 API 키
+     - (선택) NAME: `API_BASE_URL`
+     - (선택) VALUE: 기본값 `https://api.kcisa.kr` (도메인 변경 시 새 베이스 URL 입력)
 
 4. **배포**
    - "Deploy" 버튼 클릭
@@ -70,6 +73,8 @@ vercel
 ```bash
 vercel env add VITE_API_KEY
 # 값: 발급받은 공공 API 키
+vercel env add API_BASE_URL
+# 값: https://api.kcisa.kr (기본값과 동일하면 생략 가능)
 ```
 
 5. 재배포
@@ -110,6 +115,7 @@ vercel dev
 - `.env` 파일은 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다
 - API 키는 코드에 하드코딩하지 말고 Vercel 환경 변수에만 저장하세요
 - 프론트는 외부 API를 직접 호출하지 않고 `/api/events`만 호출합니다
+- API 도메인 장애/변경이 발생하면 `API_BASE_URL` 환경 변수만 업데이트 후 재배포하세요
 
 ## 개발자
 
