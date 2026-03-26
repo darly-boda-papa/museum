@@ -120,6 +120,17 @@
             align-items: center;
         }
 
+        .data-source-status {
+            margin-top: 14px;
+            display: none;
+            font-size: 0.85rem;
+            color: #fbbf24;
+            border: 1px solid #7c5a14;
+            background: #2a210e;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
         .filter-buttons {
             display: flex;
             gap: 12px;
@@ -371,6 +382,7 @@
                     </select>
                 </div>
             </div>
+            <div id="data-source-status" class="data-source-status" role="status" aria-live="polite"></div>
         </section>
 
         <!-- Events Section -->
@@ -418,11 +430,13 @@
         let allEvents = [];
         let currentFilter = 'all';
         let currentMuseum = 'all';
+        let usingSampleData = false;
 
         // DOM Elements
         const eventsContainer = document.getElementById('events-container');
         const filterButtons = document.querySelectorAll('.filter-btn');
         const museumSelect = document.getElementById('museum-select');
+        const dataSourceStatus = document.getElementById('data-source-status');
 
         function escapeHtml(value) {
             if (value == null) return '';
@@ -447,9 +461,20 @@
             return '';
         }
 
+        function updateDataSourceStatus() {
+            if (usingSampleData) {
+                dataSourceStatus.textContent = '현재 샘플 데이터를 표시 중입니다. API 연동이 실패했거나 file://로 실행 중입니다.';
+                dataSourceStatus.style.display = 'block';
+            } else {
+                dataSourceStatus.textContent = '';
+                dataSourceStatus.style.display = 'none';
+            }
+        }
+
         // Fetch all events from API (server-side key protected)
         async function fetchAllEvents() {
             if (window.location.protocol === 'file:') {
+                usingSampleData = true;
                 console.warn('file:// 실행 감지: 샘플 데이터로 표시합니다. 실제 API는 vercel dev 또는 배포 환경에서 동작합니다.');
                 return SAMPLE_EVENTS;
             }
@@ -466,8 +491,10 @@
                     throw new Error('API 응답 형식이 올바르지 않습니다.');
                 }
 
+                usingSampleData = false;
                 return data.events;
             } catch (error) {
+                usingSampleData = true;
                 console.error('Error fetching events:', error);
                 console.warn('API 호출 실패: 샘플 데이터로 대체합니다.');
                 return SAMPLE_EVENTS;
@@ -612,6 +639,7 @@
                 }
 
                 renderEvents(allEvents);
+                updateDataSourceStatus();
                 updateCounts();
                 updateMuseumOptions();
 
