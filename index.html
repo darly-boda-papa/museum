@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국립박물관 전시 정보 | National Museum Exhibitions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 60px 0 40px;
+            border-bottom: 1px solid #222;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .header-title p {
+            color: #888;
+            font-size: 1rem;
+            max-width: 500px;
+        }
+
+        .header-badge {
+            position: relative;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #aaa;
+            letter-spacing: 0.05em;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-badge:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        .header-badge .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: -45px;
+            right: 0;
+            background: #222;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            white-space: nowrap;
+            border: 1px solid #444;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .header-badge .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 20px;
+            width: 10px;
+            height: 10px;
+            background: #222;
+            border-left: 1px solid #444;
+            border-top: 1px solid #444;
+            transform: rotate(45deg);
+        }
+
+        .header-badge:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            padding: 32px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .museum-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .museum-filter label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .museum-filter select {
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .museum-filter select:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #999;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .filter-btn:hover {
+            border-color: #555;
+            color: #fff;
+        }
+
+        .filter-btn.active {
+            background: #fff;
+            border-color: #fff;
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+
+        .filter-btn .count {
+            margin-left: 8px;
+            opacity: 0.7;
+        }
+
+        /* Events Grid */
+        .events-section {
+            padding: 48px 0;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 992px) {
+            .events-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+        }
+
+        /* Event Card */
+        .event-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .event-card:hover {
+            border-color: #444;
+            transform: translateY(-4px);
+        }
+
+        .event-card.hidden {
+            display: none;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #1a1a1a;
+        }
+
+        .event-content {
+            padding: 20px;
+        }
+
+        .event-category {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: #888;
+            border: 1px solid #333;
+            padding: 4px 10px;
+            margin-bottom: 12px;
+            border-radius: 2px;
+        }
+
+        .event-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        .event-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .event-info .icon {
+            flex-shrink: 0;
+            width: 16px;
+            text-align: center;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #222;
+        }
+
+        .event-badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .badge-free {
+            background: #1a4a1a;
+            color: #4ade80;
+        }
+
+        .badge-paid {
+            background: #2a2a2a;
+            color: #999;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 100px 0;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #222;
+            border-top-color: #666;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-message {
+            text-align: center;
+            padding: 100px 0;
+            color: #f87171;
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 60px 0;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>국립박물관 전시 정보</h1>
+                    <p>국립지방박물관의 다양한 전시 정보를 한눈에 확인하세요. 역사와 문화를 잇는 소중한 전시들이 여러분을 기다립니다.</p>
+                </div>
+                <div class="header-badge">by darlypapa<span class="tooltip">Contact: ppasha_nam@samsung.com</span></div>
+            </div>
+        </header>
+
+        <!-- Filter Section -->
+        <section class="filter-section">
+            <div class="filter-row">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">
+                        전체<span class="count" id="count-all">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="free">
+                        무료<span class="count" id="count-free">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="paid">
+                        유료<span class="count" id="count-paid">0</span>
+                    </button>
+                </div>
+                <div class="museum-filter">
+                    <label for="museum-select">박물관:</label>
+                    <select id="museum-select">
+                        <option value="all">전체 박물관</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section class="events-section">
+            <div id="events-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>전시 정보를 불러오는 중입니다...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // API endpoint (served by Vercel Serverless Function)
+        const API_ENDPOINT = '/api/events';
+        const SAMPLE_EVENTS = [
+            {
+                creater: "국립청주박물관",
+                title: "한국 고인쇄문화 특별전",
+                imageObject: "https://cheongju.museum.go.kr/DATA/exbi/20160817041420145vyDClH.jpg",
+                spatialCoverage: "국립청주박물관",
+                charge: "무료",
+                period: "2016.08.17~2016.11.20"
+            },
+            {
+                creater: "국립경주박물관",
+                title: "신라의 황금문화 특별전",
+                imageObject: "https://gyeongju.museum.go.kr/img/exhibition/silla-gold.jpg",
+                spatialCoverage: "국립경주박물관",
+                charge: "무료",
+                period: "2020.11.01~2021.02.28"
+            },
+            {
+                creater: "국립대구박물관",
+                title: "가야문화 특별전",
+                imageObject: "https://daegu.museum.go.kr/img/exhibition/gaya.jpg",
+                spatialCoverage: "국립대구박물관",
+                charge: "유료",
+                period: "2021.01.15~2021.04.15"
+            }
+        ];
+
+        // State
+        let allEvents = [];
+        let currentFilter = 'all';
+        let currentMuseum = 'all';
+
+        // DOM Elements
+        const eventsContainer = document.getElementById('events-container');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const museumSelect = document.getElementById('museum-select');
+
+        function escapeHtml(value) {
+            if (value == null) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function sanitizeImageUrl(value) {
+            if (!value) return '';
+            try {
+                const url = new URL(value, window.location.origin);
+                if (url.protocol === 'http:' || url.protocol === 'https:') {
+                    return url.href;
+                }
+            } catch (e) {
+                return '';
+            }
+            return '';
+        }
+
+        // Fetch all events from API (server-side key protected)
+        async function fetchAllEvents() {
+            if (window.location.protocol === 'file:') {
+                console.warn('file:// 실행 감지: 샘플 데이터로 표시합니다. 실제 API는 vercel dev 또는 배포 환경에서 동작합니다.');
+                return SAMPLE_EVENTS;
+            }
+
+            try {
+                const response = await fetch(API_ENDPOINT, { method: 'GET' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `API 요청 실패 (${response.status})`);
+                }
+
+                if (!Array.isArray(data.events)) {
+                    throw new Error('API 응답 형식이 올바르지 않습니다.');
+                }
+
+                return data.events;
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                console.warn('API 호출 실패: 샘플 데이터로 대체합니다.');
+                return SAMPLE_EVENTS;
+            }
+        }
+
+        // Create event card HTML
+        function createEventCard(event, index) {
+            const isFree = event.charge === '무료';
+            const badgeClass = isFree ? 'badge-free' : 'badge-paid';
+            const safeTitle = escapeHtml(event.title || '제목 없음');
+            const safeCharge = escapeHtml(event.charge || '정보 없음');
+            const safeMuseum = escapeHtml(event.creater || '박물관');
+            const safePeriod = escapeHtml(event.period || '기간 미정');
+            const safeCoverage = escapeHtml(event.spatialCoverage || '장소 미정');
+            const safeImage = sanitizeImageUrl(event.imageObject || '');
+            
+            return `
+                <article class="event-card" data-charge="${safeCharge}" data-museum="${safeMuseum}" data-index="${index}">
+                    <img 
+                        class="event-image" 
+                        src="${safeImage}" 
+                        alt="${safeTitle}"
+                        onerror="this.style.display='none'"
+                    >
+                    <div class="event-content">
+                        <span class="event-category">${safeMuseum}</span>
+                        <h3 class="event-title">${safeTitle}</h3>
+                        <div class="event-info">
+                            <span class="icon">📅</span>
+                            <span>${safePeriod}</span>
+                        </div>
+                        <div class="event-info">
+                            <span class="icon">📍</span>
+                            <span>${safeCoverage}</span>
+                        </div>
+                        <div class="event-footer">
+                            <span class="event-badge ${badgeClass}">${safeCharge}</span>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        // Render events
+        function renderEvents(events) {
+            if (events.length === 0) {
+                eventsContainer.innerHTML = '<div class="no-results">표시할 전시가 없습니다.</div>';
+                return;
+            }
+
+            const cardsHTML = events.map((event, index) => createEventCard(event, index)).join('');
+            eventsContainer.innerHTML = `<div class="events-grid">${cardsHTML}</div>`;
+        }
+
+        // Update counts
+        function updateCounts() {
+            let counts = { all: 0, free: 0, paid: 0 };
+
+            allEvents.forEach(event => {
+                counts.all++;
+                if (event.charge === '무료') {
+                    counts.free++;
+                } else {
+                    counts.paid++;
+                }
+            });
+
+            document.getElementById('count-all').textContent = counts.all;
+            document.getElementById('count-free').textContent = counts.free;
+            document.getElementById('count-paid').textContent = counts.paid;
+        }
+
+        // Update Museum select options
+        function updateMuseumOptions() {
+            const museumSet = new Set();
+            allEvents.forEach(event => {
+                if (event.creater) {
+                    museumSet.add(event.creater);
+                }
+            });
+
+            const sortedMuseums = Array.from(museumSet).sort();
+            
+            sortedMuseums.forEach(museum => {
+                const option = document.createElement('option');
+                option.value = museum;
+                option.textContent = museum;
+                museumSelect.appendChild(option);
+            });
+        }
+
+        // Filter events
+        function filterEvents() {
+            const cards = document.querySelectorAll('.event-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const charge = card.dataset.charge;
+                const museum = card.dataset.museum;
+                
+                const chargeMatch = currentFilter === 'all' || 
+                                   (currentFilter === 'free' && charge === '무료') ||
+                                   (currentFilter === 'paid' && charge !== '무료');
+                const museumMatch = currentMuseum === 'all' || museum === currentMuseum;
+                
+                if (chargeMatch && museumMatch) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Check if no visible cards
+            const existingNoResults = document.querySelector('.events-grid .no-results');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+            
+            if (visibleCount === 0) {
+                const grid = document.querySelector('.events-grid');
+                if (grid) {
+                    grid.insertAdjacentHTML('beforeend', '<div class="no-results">해당 조건의 전시가 없습니다.</div>');
+                }
+            }
+        }
+
+        // Initialize
+        async function init() {
+            try {
+                allEvents = await fetchAllEvents();
+                
+                if (allEvents.length === 0) {
+                    eventsContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>전시 정보를 불러오지 못했습니다.</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">잠시 후 다시 시도해주세요.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderEvents(allEvents);
+                updateCounts();
+                updateMuseumOptions();
+
+                // Filter button click handlers
+                filterButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        filterButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentFilter = btn.dataset.filter;
+                        filterEvents();
+                    });
+                });
+
+                // Museum select change handler
+                museumSelect.addEventListener('change', () => {
+                    currentMuseum = museumSelect.value;
+                    filterEvents();
+                });
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+                eventsContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>오류가 발생했습니다.</p>
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">${escapeHtml(error.message)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
